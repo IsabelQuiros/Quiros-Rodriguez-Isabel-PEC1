@@ -1,0 +1,55 @@
+---
+title: "Identificación de genes que intervienen en TODO"
+author: "Isabel" 
+date: "TODO"
+output:
+  html_document:
+    toc: yes
+    number_sections: yes
+    theme: lumen
+---
+Repositorio en github: <TODO>
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = T, eval = FALSE)
+```
+
+
+```{r imports}
+# Instalación de paquetes requeridos
+if (!(require(BiocManager))) install.packages("BiocManager")
+BiocManager::install("SummarizedExperiment")
+```
+
+
+```{r load}
+library(SummarizedExperiment)
+
+# Cargamos los df del experimento
+df_counts <- read.csv(file="mtb.tsv", row.names = 1, head=TRUE, sep='\t')
+df_metadata <- read.csv(file="metadata.tsv", head=TRUE, sep='\t')
+df_coldata <- read.csv(file='mtb.map.tsv', head=TRUE, sep='\t')
+
+se <- SummarizedExperiment(assays=df_counts, rowData=df_metadata, colData=df_coldata)
+head(df_counts)
+
+````
+
+```{r}
+
+pca_res <- prcomp(t(df_counts), scale. = TRUE)
+plot(pca_res$x[, 1:2], col=as.factor(df_metadata$Study.Group), pch=19,
+     xlab="PC1", ylab="PC2", main="Análisis de Componentes Principales (PCA)")
+legend("topright", legend=levels(as.factor(df_metadata$Study.Group)), pch=19, 
+       col=1:length(levels(as.factor(df_metadata$Study.Group))))
+````
+
+```{r}
+# Boxplots por Grupo
+for (col_name in colnames(df_counts)){
+  boxplot(df_counts[,col_name] ~ df_metadata$Study.Group,
+        main = "Conteo de metabolitos por grupo",
+        xlab = "Grupo", ylab = "Conteo de metabolitos",
+        col = c("lightblue", "lightpink"))
+}
+```
