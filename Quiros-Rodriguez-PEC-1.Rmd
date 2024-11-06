@@ -14,25 +14,58 @@ library(knitr)
 knitr::opts_chunk$set(echo = T, eval = FALSE)
 ```
 
+## La pregunta biológica
+El estudio del que estragimos los datos es 'Differences in fecal microbial metabolites and microbiota of children with autism spectrum disorders' de Kang DW et al (2017). En este artículo, los autores se plantean la existencia de diferencias entre los metabolitos del microbioma intestinal de niños con autismo y sin él. Existen numerosos estudios que estudian la composición de la microbiota intestinal entre niños con autismo y niños neurotípicos, pero pocos o ninguno se centran en los metabolitos. Pretenden con esto establecer una relación entre el comportamiento de niños con autismo y la concentración de metabolitos.
+
+## Diseño experimental
+Para el diseño experimental se van a emplear 21 niños con ASD y 23 niños neurotípicos, todos entre 4 y 17 años. Para que la microbiota no presente alteraciones, ninguno de los niños ha consumido antibióticos en el mes anterior al estudio. Para la obtención de resultados, el estudio compara la expresión de dichos metabolitos entre ambos grupos. El artículo en cuestión no realiza ninguna modificación ni alteración de los individuos, su finalidad es meramente descriptiva, por lo que el diseño experimental se reduce a la toma de muestras y al estudio comparativo entre los dos grupos de estudio.
+
+
+##Obtención de los datos crudos.
+Para el estudio se tomaron distintas muestras:
+- Muestras fecales de las cuales se extrageron las concentraciones de los metabolitos.
+- Extracción de DNA a partir de las muestras fecales para la secuenciación del 16 rRNA e identificación de los diferentes géneros microbianos.
+
+
+##Análisis estadístico
+Como bien indican en el propio estudio, como su muestra es pequeña 21 y 23 niños, emplearon el test no paramétrico de Mann Whitney para testear diferencias en metabolitos y en la abundancia de los taxones microbianos.
+Emplearon también el Fisher Discriminant Analysis (FDA) para buscar grupos de variables que se pudiesen distinguir entre los niños ASD y el control.
+
+## Respuesta a la pregunta biológica
+Los resultados del análisis es la detección de ciertos metabolitos diferencialmente expresados entre los niños con ASD y el control. De la msima forma, ciertos taxones microbianos (aunque no es el dataset que ha sido analizado en esta PEC) presentan también diferencias entre los dos grupos. Estos resultados sirven para concluir la existencia de diferencias tanto en metabolitos como en microorganismos entre los dos grupos. Concluyen diciendo que sería necesario completar los estudios y profundizar más en los resultados con un número de muestras más amplio.
+
 
 ```{r imports}
 # Instalación de paquetes requeridos
 if (!(require(BiocManager))) install.packages("BiocManager")
 BiocManager::install("SummarizedExperiment")
+library(SummarizedExperiment)
 ```
 
-
 ```{r load}
-library(SummarizedExperiment)
-
 # Cargamos los df del experimento
 df_counts <- read.csv(file="mtb.tsv", row.names = 1, head=TRUE, sep='\t')
 df_metadata <- read.csv(file="metadata.tsv", head=TRUE, sep='\t')
 df_coldata <- read.csv(file='mtb.map.tsv', head=TRUE, sep='\t')
+df_metadata <- read.csv(file='metadata.tsv', head=TRUE, sep='\t')
 
 se <- SummarizedExperiment(assays=df_counts, rowData=df_metadata, colData=df_coldata)
-head(df_counts)
+#se[1:5, 1:3]
+#assays(se)[[1]][1:5, 1:5]
+````
 
+```{r}
+str(se)
+
+
+````
+
+
+
+
+```{r}
+colnames(se)
+dim(se)
 ````
 
 ```{r}
@@ -44,12 +77,98 @@ legend("topright", legend=levels(as.factor(df_metadata$Study.Group)), pch=19,
        col=1:length(levels(as.factor(df_metadata$Study.Group))))
 ````
 
-```{r}
+```{r, fig.width=20, fig.height=6}
 # Boxplots por Grupo
-for (col_name in colnames(df_counts)){
-  boxplot(df_counts[,col_name] ~ df_metadata$Study.Group,
-        main = "Conteo de metabolitos por grupo",
-        xlab = "Grupo", ylab = "Conteo de metabolitos",
-        col = c("lightblue", "lightpink"))
-}
+expresion_grupos 
 ```
+
+```{r}
+contenedor <- list(
+  datos = df_counts, 
+  rowData = df_metadata,
+  colData = df_coldata
+)
+save(contenedor, file = "contenedor_datos.Rda")
+````
+
+#Apèndice
+
+Incluimos en este apéndice todo el código empleado para la PEC. Aunque ya se ha ido incluyendo en el informe, lo explicamos en este apartado.
+Para poder hacer el Summarized Experiment necesitamos un par de archivos.
+- Un archivo con los datos de interés. En nuestro caso se trata de un dataframe donde las filas se corresponderán con los distintos casos de estudio (los distintos niños) y las columnas se corresponden con los diferentes metabolitos del estudio. 
+- Un dataframe con la información de las columnas, es decir, qué es cada metabolito, de donde se ha sacado y referencias.
+- Un último dataframe con la información para las filas, qué es cada paciente (con autismo o sin él), la edad, sexo y demás información que pueda ser de interés.
+
+Lo primero que se hizo fue descargar los archivos del dataset escogido. Se descargaron directamente de GitHub y se cargaron en el repositorio. Una vez descargados, se cargan en RStudio.
+
+Se incluye el código abajo explicado:
+
+```{r, eval = FALSE}
+# Instalación de paquetes requeridos
+if (!(require(BiocManager))) install.packages("BiocManager")
+BiocManager::install("SummarizedExperiment")
+library(SummarizedExperiment)
+
+````
+
+
+```{r, eval = FALSE}
+# Vamos a cargar el archivo que contiene los datos de medición de los diferentes metabolitos
+df_counts <- read.csv(file="mtb.tsv", row.names = 1, head=TRUE, sep='\t') 
+# Cargamos el archivo que contiene la información de las filas, con información referente a cada
+# paciente del estudio
+df_metadata <- read.csv(file="metadata.tsv", head=TRUE, sep='\t')
+# Cargamos ahora el archivo con la información de las columnas, los datos de cada metabolito
+df_coldata <- read.csv(file='mtb.map.tsv', head=TRUE, sep='\t')
+
+#Una vez cargados todos los datos, vamos a realizar el SummarizedExperiment. Es una función icnluída en el paquete
+# SummarizedExperiment que se descargó a través de Bioconductor. En esta función necesitamos varios datos:
+# El assays: es el archivo que contiene los datos de estudio.
+# rowData: contiene la información de las filas.
+# ColData: Contiene la información para las columnas
+se <- SummarizedExperiment(assays=df_counts, rowData=df_metadata, colData=df_coldata)
+````
+
+Una vez que hemos cargado nuestros archivos y construído el SummarizedExperiment, realizamos una exploración del dataset que nos permita saber qué es lo que tenemos:
+
+```{r eval=FALSE}
+#Accederemos para empezar a las dimensiones de nuestro objeto:
+dim(se)
+#Lo priemro que haremos será tener una descripción genral de la estructura del objeto.
+head(str(se))
+# Obtenemos una visión general de las filas. La procedencia de los datos, si tiene autismo o no, la edad, sexo...
+head(rowData(se))
+#Hacemos lo mismo que con las filas, pero con las columnas. En este caso nos da información del HMDB (referencia en el Human Metabolome Database) y KEFF (a Database with molecules that are relevant to biological systems)
+head(colData(se))
+
+#Accedemos a los nombres de las columnas y nombres delas filas:
+head(rownames(se))
+head(colnames(se))
+````
+
+```{r eval=FALSE}
+pca_res <- prcomp(t(df_counts), scale. = TRUE)
+plot(pca_res$x[, 1:2], col=as.factor(df_metadata$Study.Group), pch=19,
+     xlab="PC1", ylab="PC2", main="Análisis de Componentes Principales (PCA)")
+legend("topright", legend=levels(as.factor(df_metadata$Study.Group)), pch=19, 
+       col=1:length(levels(as.factor(df_metadata$Study.Group))))
+
+```
+
+
+```{r eval=FALSE}
+expr_data<- as.data.frame(assay(se))
+expr_data$group <- df_metadata$Study.Group[match(rownames(se), df_metadata$Sample)]
+expr_long <- expr_data %>%
+  pivot_longer(cols = -group, names_to = "sample", values_to = "expression") %>%
+  group_by(group, sample) %>%
+  summarise(mean_expression = mean(expression, na.rm = TRUE))
+
+expresion_grupos <- ggplot(expr_long, aes(x = sample, y = mean_expression, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") +  # Gráfica de barras para comparación
+  labs(x = "Sample", y = "Mean Expression") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Ajuste de texto
+expresion_grupos
+````
+
