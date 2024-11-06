@@ -1,7 +1,7 @@
 ---
 title: "Metabolitos de la microbiota fecal en niños con autismo"
-author: "Isabel Quirós Rodríguez-PEC1" 
-date: "TODO"
+author: "Isabel-Quirós-Rodríguez-PEC1" 
+date: "06/11/2024"
 output:
   html_document:
     toc: yes
@@ -9,6 +9,7 @@ output:
     theme: lumen
 ---
 Repositorio en github: https://github.com/IsabelQuiros/Quiros-Rodriguez-Isabel-PEC1.git
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -40,7 +41,7 @@ library(ggplot2)
 library(tidyr)
 ```
 
-Cargamos los datos para hacer el contenedor SummarizedExperiment().
+Cargamos los datos para hacer el contenedor SummarizedExperiment(). Los datos se descargaron de https://github.com/borenstein-lab/microbiome-metabolome-curated-data/tree/89a519d8c832008fbc6e650453e83e2f04858d02/data/processed_data/KANG_AUTISM_2017 
 
 Para poder hacer el Summarized Experiment necesitamos un par de archivos.
 - Un archivo con los datos de interés. En nuestro caso se trata de un dataframe donde las filas se corresponderán con los distintos casos de estudio (los distintos niños) y las columnas se corresponden con los diferentes metabolitos del estudio. 
@@ -122,6 +123,11 @@ contenedor <- list(
 save(contenedor, file = "contenedor_datos.Rda")
 ```
 
+## Subir los datos a GitHub
+
+Para clonar los archivos de GitHub de mi repositorio, lo hago mediante Git. Creo un repositorio en el ordenador con el mismo nombre que el que tengo en GitHub. Una vez creados ambos repositorios, los sincronizo mediante el comando "git remote origin http://" donde el http debe ser en enlace a mi repositorio en GitHub. Luego con "push -u origin main" los clono, me pide el nombre de usuario y contraseña.
+
+Una vez clonado el repositorio de GitHub en el ordenador, se van guardando los archivos generados y las distintas verisones. Para ello, como estoy usando RStudio, añado Commits a cada una de las versiones que quiero subir a GitHub, describiendo brevemente de que versión se va tratando. Una vez añadido el Commit, lo subo a GitHub mediante Push Branch. 
 
 
 ## Apèndice
@@ -210,4 +216,32 @@ expresion_grupos <- ggplot(expr_long, aes(x = sample, y = mean_expression, fill 
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Ajuste de texto
 ```
+
+```{r, eval=FALSE}
+#Código para crear el contenedor con nuestros datos.
+#Hacemos una lista con los distintos dataframes, que será lo que luego exportaremos a .RData
+contenedor <- list(
+  datos = df_counts, 
+  rowData = df_metadata,
+  colData = df_coldata
+)
+#Lo guardamos
+save(contenedor, file = "contenedor_datos.Rda")
+```
+
+De esta manera, los datos quedan guardados en el contenedor y luego los podemos extraer directamente del archivo .RData
+
+Introducimos aquí el código para clonar el repositorio GitHub.
+```{bash, eval=FALSE}
+#Entramos en la carpeta de nuestro repositorio en el ordeandor
+cd Desktop/Quiros-Rodriguez-Isabel-PEC1
+#Iniciamos Git
+git init
+#Nos conectameos con el repositorio creado en GitHub
+git remote add origin https://github.com/IsabelQuiros/Quiros-Rodriguez-Isabel-PEC1.git
+#Nos conectamos
+git push origin main
+#Nos va a pedir usuario y contraseña, los introducimos y ya nos podemos conectar.
+```
+
 
